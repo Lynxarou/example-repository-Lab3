@@ -1,0 +1,171 @@
+import React, { useState, useRef, useEffect } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  FlatList,
+  Animated,
+  StyleSheet,
+  Dimensions,
+  KeyboardAvoidingView,
+  Platform,
+} from "react-native";
+
+const { width } = Dimensions.get("window");
+
+// ✅ Separate animated item component
+const AnimatedListItem = ({ value }) => {
+  const slideAnim = useRef(new Animated.Value(-width)).current;
+
+  useEffect(() => {
+    Animated.spring(slideAnim, {
+      toValue: 0,
+      bounciness: 12,
+      useNativeDriver: true,
+    }).start();
+  }, []);
+
+  return (
+    <Animated.View
+      style={[styles.listItem, { transform: [{ translateX: slideAnim }] }]}
+    >
+      <Text style={styles.listText}>🌟 {value}</Text>
+    </Animated.View>
+  );
+};
+
+export default function App() {
+  const [enteredItem, setEnteredItem] = useState("");
+  const [itemList, setItemList] = useState([]);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  // Fade in title
+  useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 1200,
+      useNativeDriver: true,
+    }).start();
+  }, []);
+
+  const addItemHandler = () => {
+    if (enteredItem.trim() === "") return;
+    const newItem = { id: Math.random().toString(), value: enteredItem };
+    setItemList((prev) => [newItem, ...prev]);
+    setEnteredItem("");
+  };
+
+  return (
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={styles.container}
+    >
+      <Animated.View style={{ opacity: fadeAnim }}>
+        <Text style={styles.title}>✨ My Favorite List ✨</Text>
+        <Text style={styles.subtitle}>
+          Add your favorite items and make your own stylish list!
+        </Text>
+      </Animated.View>
+
+      <View style={styles.inputContainer}>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter Item"
+          placeholderTextColor="#aaa"
+          value={enteredItem}
+          onChangeText={setEnteredItem}
+        />
+        <TouchableOpacity
+          style={styles.button}
+          onPress={addItemHandler}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.buttonText}>ADD</Text>
+        </TouchableOpacity>
+      </View>
+
+      <FlatList
+        data={itemList}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => <AnimatedListItem value={item.value} />}
+        contentContainerStyle={{ paddingBottom: 50 }}
+        showsVerticalScrollIndicator={false}
+      />
+
+      <Text style={styles.footer}>Made by pogi [Lance Valdez]</Text>
+    </KeyboardAvoidingView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#101820FF",
+    alignItems: "center",
+    paddingTop: 60,
+    paddingHorizontal: 20,
+  },
+  title: {
+    fontSize: 26,
+    fontWeight: "bold",
+    color: "#FEE715FF",
+    textAlign: "center",
+    letterSpacing: 1,
+  },
+  subtitle: {
+    color: "#ccc",
+    fontSize: 14,
+    textAlign: "center",
+    marginVertical: 10,
+  },
+  inputContainer: {
+    flexDirection: "row",
+    width: "100%",
+    marginVertical: 15,
+  },
+  input: {
+    flex: 1,
+    backgroundColor: "#222",
+    color: "#fff",
+    borderRadius: 10,
+    paddingHorizontal: 15,
+    height: 50,
+    fontSize: 16,
+  },
+  button: {
+    marginLeft: 10,
+    backgroundColor: "#FEE715FF",
+    borderRadius: 10,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    elevation: 3,
+  },
+  buttonText: {
+    color: "#101820FF",
+    fontWeight: "bold",
+    fontSize: 16,
+  },
+  listItem: {
+    backgroundColor: "#1E1E1E",
+    padding: 15,
+    borderRadius: 12,
+    marginVertical: 6,
+    width: "100%",
+    shadowColor: "#FEE715FF",
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    shadowOffset: { width: 0, height: 2 },
+  },
+  listText: {
+    color: "#fff",
+    fontSize: 16,
+  },
+  footer: {
+    color: "#aaa",
+    position: "absolute",
+    bottom: 10,
+    fontSize: 12,
+  },
+});
